@@ -1,0 +1,162 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+ll n, m, root[100001];
+ll cnt, used[100001], d[100001];
+ll anw;
+struct TZ
+{
+    ll root;
+    ll minc;
+};
+TZ p[100001][21];
+struct TP
+{
+    int u, v;
+    long long w;
+};
+TP e[100001], mini[100001];
+struct cmp
+{
+    bool operator ()(TP a, TP b)
+    {
+        return a.w>b.w;
+    }
+};
+vector <pair<ll,ll> > g[100001];
+int GetRoot(ll u)
+{
+    while (root[u]!=u)
+    {
+        u = root[u];
+        root[u] = root[root[u]];
+    }
+    return u;
+}
+void DFS(int u)
+{
+    used[u]=1;
+    for (int i=0; i<g[u].size(); i++)
+    {
+        int v = g[u][i].second;
+        if (used[v]==0)
+        {
+            d[v] = d[u] +1;
+            p[v][0].root = u;
+            p[v][0].minc = g[u][i].first;
+            DFS(v);
+        }
+    }
+}
+int LCA(int x, int y)
+{
+    ll res = 1e9;
+    if (x==y)
+    {
+        return 0;
+    }
+    else
+    {
+        for (int i=19; i>=0; i--)
+        {
+            if (d[p[x][i].root]>=d[y])
+            {
+                res = min (res, p[x][i].minc);
+                x = p[x][i].root;
+            }
+        }
+        for (int i=19; i>=0; i--)
+        {
+            if (d[p[y][i].root]>=d[x])
+            {
+                res = min (res, p[y][i].minc);
+                y = p[y][i].root;
+            }
+        }
+
+        for (int i=19; i>=0; i--)
+        {
+            if (p[x][i].root!=p[y][i].root)
+            {
+                res = min (res, p[x][i].minc);
+                res = min (res, p[y][i].minc);
+                x = p[x][i].root;
+                y = p[y][i].root;
+            }
+        }
+        while (x!=y)
+        {
+            res = min (res, p[y][0].minc);
+            res = min (res, p[x][0].minc);
+            x = p[x][0].root;
+            y = p[y][0].root;
+        }
+        return res;
+    }
+}
+int main()
+{
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+    cin>>n>>m;
+    for (int i=1; i<=m; i++)
+    {
+        cin>>e[i].u>>e[i].v>>e[i].w;
+    }
+    sort(e+1, e+1+m, cmp());
+    for (int i=1; i<=n; i++)
+    {
+        root[i] = i;
+    }
+    //KRUSKAL
+    int idx =0;
+    for (int i=1; i<=m; i++)
+    {
+        int U = e[i].u;
+        int V = e[i].v;
+        int x = GetRoot(U);
+        int y = GetRoot(V);
+        if (x!=y)
+        {
+            if (cnt<=n-2)
+            {
+                root[y] = x;
+                g[U].push_back({e[i].w, V});
+                g[V].push_back({e[i].w, U});
+                cnt++;
+            }
+        }
+        else
+        {
+            idx++;
+            mini[idx].u = U;
+            mini[idx].v = V;
+            mini[idx].w = e[i].w;
+        }
+    }
+    for (int i=0; i<=19; i++)
+    {
+        for (int j=1; j<=n; j++)
+        {
+            p[j][i].minc  = 1e9;
+        }
+    }
+    p[1][0].root = 1;
+    DFS(1);
+    for (int i=1; i<=19; i++)
+    {
+        for (int j=1; j<=n; j++)
+        {
+
+            p[j][i].root = p[p[j][i-1].root][i-1].root;
+            p[j][i].minc = min (p[j][i-1].minc, p[p[j][i-1].root][i-1].minc);
+        }
+
+    }
+    for (int i=1; i<=idx; i++)
+    {
+        anw+=(LCA(mini[i].u, mini[i].v)-mini[i].w);
+    }
+    cout<<anw;
+}
