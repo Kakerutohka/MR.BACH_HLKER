@@ -1,0 +1,78 @@
+//Nguồn bài: https://codeforces.com/group/FLVn1Sc504/contest/274830/problem/Z
+#include <bits/stdc++.h>
+using namespace std;
+typedef pair<int,int> ii;
+long long res, n, m, num[30001], low[30001];
+long long cntcc, cnt, p[30001], slt[30001];
+vector <long long> e[100001];
+stack <long long> st;
+void DFS(int u)
+{
+    cnt++;
+    low[u] = num[u] = cnt;
+    for (int i=0; i<e[u].size(); i++)
+    {
+        int v = e[u][i];
+        if (num[v]==0)
+        {
+            p[v] = u;
+            st.push(u);
+            DFS(v);
+            low[u] = min (low[u], low[v]);
+            if (low[v]>=num[u]) // u là khớp
+            {
+                long long dem = 0;
+                cntcc++;
+                do
+                {
+                    v = st.top();
+                    st.pop();
+                    if (slt[v]<cntcc)
+                    {
+                        slt[v] = cntcc;
+                        dem++;
+                    }
+                }while (u!=v);
+                res = max (res, dem);
+            }
+        }
+        else
+        {
+            low[u] = min (low[u], num[v]);
+        }
+    }
+    st.push(u);
+}
+int main()
+{
+
+    freopen("mhz.inp", "r", stdin);
+    freopen("mhz.out", "w", stdout);
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+    cin>>n>>m;
+    for (int i=1; i<=m; i++)
+    {
+        int u, v;
+        cin>>u>>v;
+        e[u].push_back(v);
+        e[v].push_back(u);
+    }
+    if (m==0)
+    {
+        cout<<1;
+    }
+    else
+    {
+        for (int i=1; i<=n; i++)
+        {
+            if (num[i]==0)
+            {
+                DFS(i);
+            }
+        }
+        cout<<res<<endl;;
+    }
+}
+
